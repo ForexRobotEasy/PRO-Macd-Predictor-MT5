@@ -1,0 +1,76 @@
+
+// PRO Macd Predictor MT5
+// Developer's site: forexroboteasy.com
+// Developed by: Forex Robot Easy Team
+
+// Include necessary libraries
+#include <Trade\Trade.mqh>
+#include <MovingAverages\MovingAverages.mqh>
+
+// Define the input parameters
+input int fast_ma_period = 12; // Fast MA period
+input int slow_ma_period = 26; // Slow MA period
+input int signal_period = 9; // Signal line period
+input ENUM_MA_METHOD ma_method = MODE_EMA; // Moving average method
+input ENUM_APPLIED_PRICE applied_price = PRICE_CLOSE; // Applied price
+
+// Define global variables
+double macd_buffer[]; // Buffer to store MACD values
+double signal_buffer[]; // Buffer to store signal line values
+double main_buffer[]; // Buffer to store main line values
+
+// Define trade functions
+void OnTick()
+{
+   // Calculate MACD values
+   double macd_main, macd_signal, macd_histogram;
+   iMACD(NULL, 0, fast_ma_period, slow_ma_period, signal_period, applied_price, ma_method, macd_main, macd_signal, macd_histogram);
+
+   // Store MACD values in buffers
+   ArraySetAsSeries(macd_buffer, true);
+   ArraySetAsSeries(signal_buffer, true);
+   ArraySetAsSeries(main_buffer, true);
+   macd_buffer[0] = macd_main;
+   signal_buffer[0] = macd_signal;
+   main_buffer[0] = macd_main;
+
+   // Check for line crossing and trend shifting
+   if (macd_main > macd_signal && main_buffer[1] <= signal_buffer[1])
+   {
+      // Line crossing from below
+      Print('Line crossing from below. Buy signal.');
+      // Place buy order
+      // ...
+   }
+   else if (macd_main < macd_signal && main_buffer[1] >= signal_buffer[1])
+   {
+      // Line crossing from above
+      Print('Line crossing from above. Sell signal.');
+      // Place sell order
+      // ...
+   }
+
+   // Analyze distance between MACD Predictor line and last price
+   double last_price = iClose(NULL, 0, 0);
+   double distance = macd_main - last_price;
+   if (distance > 0)
+   {
+      Print('Distance between MACD Predictor line and last price is positive. Trade has time to go in favor.');
+   }
+   else if (distance < 0)
+   {
+      Print('Distance between MACD Predictor line and last price is negative. Trade may not go in favor.');
+   }
+   else
+   {
+      Print('Distance between MACD Predictor line and last price is zero.');
+   }
+}
+
+// Define the entry point of the program
+void OnStart()
+{
+   // Initialize trade functions
+   OnInit();
+   OnTick();
+}
